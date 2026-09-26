@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gửi Em</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #17110c;
+    --ink-2: #241a11;
+    --paper: #f7efdd;
+    --paper-2: #efe4c9;
+    --gold: #b98d4a;
+    --gold-light: #ddbc7c;
+    --text: #3a2c1c;
+    --text-soft: #6b5a44;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'EB Garamond', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    position: relative;
+    padding: 40px 18px;
+  }
+  .glow {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 42%, rgba(221,188,124,0.16), transparent 65%);
+    animation: breathe 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+  .glint {
+    position: fixed;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    opacity: 0;
+    animation: rise 10s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes rise {
+    0% { opacity: 0; transform: translateY(10px); }
+    25% { opacity: 0.8; }
+    75% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-120px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glow, .glint { animation: none; }
+  }
+
+  .stage { position: relative; width: 100%; max-width: 620px; }
+
+  /* ---------- Envelope ---------- */
+  #envelope-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    cursor: pointer;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  #envelope-wrap.opened { opacity: 0; transform: scale(0.94); pointer-events: none; }
+  .envelope {
+    position: relative;
+    width: min(76vw, 300px);
+    aspect-ratio: 3 / 2;
+    background: linear-gradient(160deg, var(--paper-2), var(--paper));
+    box-shadow: 0 24px 50px -20px rgba(0,0,0,0.65), 0 0 60px -12px rgba(221,188,124,0.3);
+  }
+  .envelope::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg, transparent 49.4%, rgba(0,0,0,0.12) 49.7%),
+      linear-gradient(-135deg, transparent 49.4%, rgba(0,0,0,0.12) 49.7%);
+  }
+  .flap {
+    position: absolute; top: 0; left: 0; right: 0; height: 60%;
+    background: linear-gradient(165deg, var(--paper), #e4d6b3);
+    clip-path: polygon(0 0, 100% 0, 50% 80%);
+  }
+  .wax {
+    position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+    width: 38px; height: 38px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold) 70%);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4), 0 0 20px rgba(221,188,124,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; color: #3a2c14;
+  }
+  .tap-hint {
+    font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 17px;
+    color: var(--gold-light); opacity: 0.9; animation: pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.95; } }
+  @media (prefers-reduced-motion: reduce) { .tap-hint { animation: none; } }
+
+  /* ---------- Letter card ---------- */
+  #letter {
+    position: relative;
+    opacity: 0; transform: translateY(16px);
+    pointer-events: none;
+    background: var(--paper);
+    background-image: radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px);
+    background-size: 3px 3px;
+    padding: 52px 40px 44px;
+    box-shadow: 0 30px 70px -25px rgba(0,0,0,0.7);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  #letter.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .corner { position: absolute; width: 22px; height: 22px; border-color: var(--gold); }
+  .corner-tl { top: 12px; left: 12px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+  .corner-tr { top: 12px; right: 12px; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+  .corner-bl { bottom: 12px; left: 12px; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+  .corner-br { bottom: 12px; right: 12px; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+
+  .dateline {
+    text-align: right;
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 15px; color: var(--text-soft); margin: 0 0 26px;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif; font-weight: 600;
+    font-size: clamp(32px, 7vw, 44px);
+    text-align: center; margin: 0 0 20px; color: var(--text);
+  }
+  .rule { width: 56px; height: 1px; background: var(--gold); opacity: 0.6; margin: 0 auto 34px; }
+
+  .body-text p {
+    font-size: 18px; line-height: 1.85; color: var(--text);
+    margin: 0 0 22px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  #letter.visible .body-text p { opacity: 1; transform: translateY(0); }
+
+  .aside {
+    text-align: center; font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 19px; color: var(--gold); margin: 30px 0 !important;
+  }
+
+  .gift { border-left: 1px solid var(--gold); padding-left: 18px; margin: 0 0 26px !important; }
+  .gift-label {
+    display: block; font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 15px; color: var(--gold); margin-bottom: 6px;
+  }
+
+  .closing {
+    font-size: 18px; line-height: 1.85; color: var(--text);
+    font-style: italic; text-align: center; margin: 36px 0 8px !important;
+  }
+  .signoff {
+    margin-top: 30px; text-align: right;
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 23px; color: var(--gold); line-height: 1.5;
+  }
+
+  @media (max-width: 420px) {
+    #letter { padding: 42px 24px 34px; }
+    .gift { padding-left: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<div class="stage">
+  <div id="envelope-wrap">
+    <div class="envelope">
+      <div class="flap"></div>
+      <div class="wax">V</div>
+    </div>
+    <div class="tap-hint">chạm vào để mở thư</div>
+  </div>
+
+  <div id="letter">
+    <span class="corner corner-tl"></span>
+    <span class="corner corner-tr"></span>
+    <span class="corner corner-bl"></span>
+    <span class="corner corner-br"></span>
+
+    <p class="dateline">Đà Nẵng, ngày 26 tháng 9 năm 2026</p>
+    <h1>Gửi Em</h1>
+    <div class="rule"></div>
+
+    <div class="body-text">
+      <p>Cảm ơn em đã nhận lời và dành thời gian đến buổi tối hôm nay.</p>
+      <p>Chắc là em đã nhận được quà rồi nhỉ. Ờ thì nhận rồi mới tới lượt lá thư này được mở ra. Hẹ.</p>
+      <p>Đây là lá thư người ta muốn viết để lưu lại cảm xúc của người ta khi chọn đồ cho em. Người ta muốn mỗi món đồ người ta tặng, khi em đeo lên người, đều sẽ có câu chuyện của riêng nó.</p>
+
+      <p class="aside">Vào nhé!</p>
+
+      <p class="gift"><span class="gift-label">vòng tay</span>Đầu tiên là vòng tay, cái dễ nhất, được chọn cuối cùng, đơn giản vì nó hợp với đồng hồ và nhẫn. Lụm.</p>
+
+      <p class="gift"><span class="gift-label">chiếc nhẫn</span>Về chiếc nhẫn, lúc đầu cũng nghĩ là trông nó giống nhẫn cầu hôn quá, cùng với không khí của buổi ngày hôm nay định book nữa, người ta cũng lo là em sẽ ngại. Nhưng mà đắn đo một hồi thì vẫn quyết định mua. Người ta sẽ không mặc định hôm nay là ngày cầu hôn em đâu, lúc đấy người ta nghĩ thế này, rằng tụi mình ít khi đi chơi với nhau, nên là người ta muốn em được trải qua những giây phút hạnh phúc và đặc biệt nhất ở mỗi nơi mà tụi mình đi qua.</p>
+
+      <p class="gift"><span class="gift-label">đồng hồ</span>Cuối cùng là đồng hồ. Em biết tại sao người ta lại chọn nó không? Vì trong nhiều mẫu mà người ta xem, chỉ có cái này là người ta có một cảm giác rất lạ khi nghĩ tới nó sẽ thế nào khi lên tay em. Đinh ninh luôn là chắc chắn sẽ xinh (hy vọng là em thấy nó xinh). Và một lý do nữa người ta muốn tặng em, để mỗi lần nhìn vào nó người ta cũng tự nhắc nhở bản thân rằng phải trân trọng từng giây phút mà tụi mình bên nhau.</p>
+
+      <p>Một cái nữa là ba món ấy đều nằm trong một bộ sưu tập tên là Lumine, nôm na là ánh sáng, thấy tự nhiên nó có ý nghĩa nên là lụm hết sạch.</p>
+
+      <p>Người ta có cảm giác từ khi biết em, theo đuổi em, thích em, và dần yêu em, người ta có được rất nhiều niềm vui, hạnh phúc, một ngày trôi qua cũng nhẹ nhàng, bình yên và ý nghĩa, đẹp hơn rất nhiều so với lúc trước.</p>
+
+      <p>Người ta muốn tụi mình sẽ hạnh phúc như vậy, bình yên như vậy, cùng nắm tay nhau đi qua nhiều con đường, đi thật lâu và thật xa trên hành trình yêu này cùng nhau nhé.</p>
+
+      <p class="closing">Cảm ơn vì em đã đến, đã ở lại đến bây giờ, và đã yêu người ta hết lòng.</p>
+    </div>
+
+    <p class="signoff">Yêu em,<br>Vy Lâm</p>
+  </div>
+</div>
+
+<script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (let i = 0; i < 10; i++) {
+      const g = document.createElement('div');
+      g.className = 'glint';
+      g.style.left = Math.random() * 100 + 'vw';
+      g.style.top = 35 + Math.random() * 55 + 'vh';
+      g.style.animationDelay = (Math.random() * 10) + 's';
+      g.style.animationDuration = (8 + Math.random() * 6) + 's';
+      document.body.appendChild(g);
+    }
+  })();
+
+  const wrap = document.getElementById('envelope-wrap');
+  const letter = document.getElementById('letter');
+  let opened = false;
+  wrap.addEventListener('click', () => {
+    if (opened) return;
+    opened = true;
+    wrap.classList.add('opened');
+    setTimeout(() => letter.classList.add('visible'), 350);
+  });
+</script>
+</body>
+</html>
